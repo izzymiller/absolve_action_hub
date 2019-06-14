@@ -40,7 +40,7 @@ export class absolveAction extends Hub.Action {
       throw "Must set a cost_threshold!"
     }
 
-    if (footprint > request.formParams.cost_threshold) {
+    if (footprint > Number(request.formParams.cost_threshold)) {
       throw "Too Expensive! Increase your threshold or try another offset"
     }
 
