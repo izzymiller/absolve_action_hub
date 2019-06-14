@@ -35,6 +35,11 @@ export class absolveAction extends Hub.Action {
     if (!footprint) {
       throw "Couldn't get data from cell."
     }
+
+    if (!request.formParams.to) {
+      throw "Needs a valid email address."
+    }
+    
     console.log(footprint)
 
     const options = {
@@ -60,19 +65,25 @@ export class absolveAction extends Hub.Action {
   async form() {
     const form = new Hub.ActionForm()
     form.fields = [{
-      label: "Auto Accept Estimate?",
-      name: "autoAccept",
-      required: true,
-      type: "textarea",
-    },
-    {
-     label: "Cost Threshold ($)",
-      name: "cost_threshold",
-      required: false,
+      name: "to",
+      label: "To Email Address",
+      description: "e.g. test@example.com",
       type: "string",
-      default: "5",
-    }
-    ]
+      required: true,
+    }, {
+      name: "from",
+      label: "From Email Address",
+      description: "e.g. test@example.com",
+      type: "string",
+    }, {
+      label: "Filename",
+      name: "filename",
+      type: "string",
+    }, {
+      label: "Subject",
+      name: "subject",
+      type: "string",
+    }]
     return form
   }
 
