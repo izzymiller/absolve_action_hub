@@ -29,8 +29,8 @@ export class absolveAction extends Hub.Action {
   ]
 
   async execute(request: Hub.ActionRequest) {
-    console.log(request)
-    console.log(request.params)
+    // console.log(request)
+    // console.log(request.params)
     const footprint = Number(request.params.value)
     if (!footprint) {
       throw "Couldn't get data from cell."
@@ -59,15 +59,15 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(options).promise()
-      console.log(response)
-      console.log("fuck yeah")
-      console.log(response.code)
+      // console.log(response)
+      // console.log("fuck yeah")
+      // console.log(response.code)
+      console.log(response.data)
       return new Hub.ActionResponse({ success: true,message: response })
-      console.log(response)
     } catch (e) {
-      console.log("nooo")
-      console.log(e)
-      console.log(e.message)
+      // console.log("nooo")
+      // console.log(e)
+      // console.log(e.message)
       return new Hub.ActionResponse({ success: false, message: e.message })
     }
   }
