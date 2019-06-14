@@ -1,5 +1,4 @@
 import * as Hub from "../../hub"
-import JSON
 
 import * as httpRequest from "request-promise-native"
 
