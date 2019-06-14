@@ -3,7 +3,7 @@ import * as Hub from "../../hub"
 import * as httpRequest from "request-promise-native"
 
 const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
-
+const TAG = "co2_footprint"
 export class absolveAction extends Hub.Action {
 
   name = "absolve"
@@ -11,6 +11,7 @@ export class absolveAction extends Hub.Action {
   iconName = "absolve/leaf.svg"
   description = "Offset your Carbon Footprint"
   supportedActionTypes = [Hub.ActionType.Cell]
+  requiredFields = [{tag: TAG}]
   params = [
     {
       name: "privateKey",
