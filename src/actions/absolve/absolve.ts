@@ -43,9 +43,6 @@ export class absolveAction extends Hub.Action {
     if (footprint > Number(request.formParams.cost_threshold)) {
       throw "Too Expensive! Increase your threshold or try another offset"
     }
-
-    console.log(footprint)
-
     const options = {
       url: `${CL_API_URL}/purchases/carbon/`,
       headers: {
@@ -59,21 +56,10 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(options).promise()
-      // console.log(response)
-      // console.log("fuck yeah")
-      // console.log(response.code)
-      console.log(response)
-      console.log(response.statusCode)
-      console.log(response.text)
-      console.log(response.body)
-      console.log(response.body.pretty_url)
-      console.log(response.body.rec_cost_in_usd_cents)
+      console.log("You have successfully offset your footprint, spending ${response.body.rec_cost_in_usd_cents}! See the details at ${response.body.pretty_url}.")
       throw "You have successfully offset your footprint, spending ${response.body.rec_cost_in_usd_cents}! See the details at ${response.body.pretty_url}."
       return new Hub.ActionResponse({ success: true,message: response })
     } catch (e) {
-      // console.log("nooo")
-      // console.log(e)
-      // console.log(e.message)
       return new Hub.ActionResponse({ success: false, message: e.message })
     }
   }
