@@ -62,7 +62,9 @@ export class absolveAction extends Hub.Action {
       // console.log(response)
       // console.log("fuck yeah")
       // console.log(response.code)
-      console.log(response.data)
+      console.log(response)
+      console.log(response.statusCode)
+      console.log(response.text)
       return new Hub.ActionResponse({ success: true,message: response })
     } catch (e) {
       // console.log("nooo")
