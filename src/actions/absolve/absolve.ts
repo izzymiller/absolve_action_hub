@@ -7,9 +7,9 @@ const TAG = "co2_footprint"
 export class absolveAction extends Hub.Action {
 
   name = "absolve"
-  label = "Absolve - Manage your Carbon Footprint"
+  label = "Absolve - Manage Your Carbon Footprint"
   iconName = "absolve/leaf.svg"
-  description = "Offset your Carbon Footprint"
+  description = "Offset your carbon footprint"
   supportedActionTypes = [Hub.ActionType.Cell]
   requiredFields = [{tag: TAG}]
   params = [
