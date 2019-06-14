@@ -99,4 +99,4 @@ export class absolveAction extends Hub.Action {
 //   }
 // }
 
-Hub.addAction(new absolveAction())
+Hub.addAction(new absolveAction());
