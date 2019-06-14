@@ -57,43 +57,25 @@ export class absolveAction extends Hub.Action {
     }
   }
 
-  async form(request: Hub.ActionRequest) {
+  async form() {
     const form = new Hub.ActionForm()
-
-    if (!request.params.privateKey) {
-      form.error = "No Cloverly API key configured. Please add it in the Admin > Actions panel."
-      return form
-    }
-
-    try {
-      await this.validateCloverlyToken(request.params.privateKey)
-
-      form.fields = [{
-        label: "Auto Accept Estimate?",
-        name: "autoAccept",
-        required: true,
-        type: "select",
-        options: [
-            { name: "yes", label: "Yes" },
-            { name: "no", label: "No" },
-            { name: "yes_with_threshold", label: "Yes, with threshold" },
-          ],
-        default: "yes_with_threshold"
+    form.fields = [{
+      label: "Auto Accept Estimate?",
+      name: "autoAccept",
+      required: true,
+      type: "textarea",
     },
     {
-      label: "Cost Threshold ($)",
+     label: "Cost Threshold ($)",
       name: "cost_threshold",
       required: false,
       type: "string",
-      default: "5"
-    },
-      ]
-    } catch (e) {
-      form.error = this.prettyAbsolveError(e)
+      default: "5",
     }
-
+    ]
     return form
   }
+
 
   private async validateCloverlyToken(token: string) {
     try {
