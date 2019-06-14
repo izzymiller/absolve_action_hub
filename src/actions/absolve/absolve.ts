@@ -60,8 +60,14 @@ export class absolveAction extends Hub.Action {
     try {
       const response = await httpRequest.post(options).promise()
       console.log(response)
+      console.log("fuck yeah")
+      console.log(response.code)
       return new Hub.ActionResponse({ success: true,message: response })
+      console.log(response)
     } catch (e) {
+      console.log("nooo")
+      console.log(e)
+      console.log(e.message)
       return new Hub.ActionResponse({ success: false, message: e.message })
     }
   }
