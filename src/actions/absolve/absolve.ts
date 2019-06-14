@@ -54,7 +54,7 @@ export class absolveAction extends Hub.Action {
       },
       json: true,
       resolveWithFullResponse: true,
-      body: JSON.stringify({"weight":{"value":35,"units":"kg"}}),
+      body: {'weight':{'value':35,'units':'kg'}},
     }
 
     try {
