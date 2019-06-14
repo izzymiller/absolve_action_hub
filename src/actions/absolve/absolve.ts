@@ -58,7 +58,7 @@ export class absolveAction extends Hub.Action {
       const response = await httpRequest.post(options).promise()
       console.log("You have successfully offset your footprint, spending ${response.body.rec_cost_in_usd_cents}! See the details at ${response.body.pretty_url}.")
       throw "You have successfully offset your footprint, spending ${response.body.rec_cost_in_usd_cents}! See the details at ${response.body.pretty_url}."
-      return new Hub.ActionResponse({ success: true,message: response })
+      // return new Hub.ActionResponse({ success: true,message: response })
     } catch (e) {
       return new Hub.ActionResponse({ success: false, message: e.message })
     }
