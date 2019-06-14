@@ -1,48 +1,48 @@
 import * as Hub from "../../hub"
 
-import * as offset from "offset"
+import * as twilio from "twilio"
 
-const MAX_OFFSET_COST = 1600
-const TAG = "carbon"
+const TWILIO_MAX_MESSAGE_BODY = 1600
+const TAG = "phone"
 
-export class OffsetAction extends Hub.Action {
+export class TwilioMessageAction extends Hub.Action {
 
-  name = "offset"
-  label = "Offset - Manage your Carbon Footprint"
-  iconName = "offset/leaf.svg"
-  description = "Offset your carbon footprint from within Looker!"
+  name = "twilio_message"
+  label = "Twilio - Send Message"
+  iconName = "twilio/twilio.svg"
+  description = "Send a message to phone numbers via Twilio."
   supportedActionTypes = [Hub.ActionType.Cell, Hub.ActionType.Query]
   supportedFormats = [Hub.ActionFormat.JsonDetail]
   requiredFields = [{ tag: TAG }]
   params = [
     {
-      name: "publicKey",
-      label: "Cloverly Public Key",
-      required: true,
-      sensitive: true,
-      description: "Public Key from https://cloverly.com",
-    }, {
-      name: "privateKey",
-      label: "Cloverly Private Key",
-      required: true,
-      sensitive: true,
-      description: "Private Key from https://cloverly.com",
-    }, {
-      name: "autoBuy",
-      label: "Auto Accept Offsets",
+      name: "accountSid",
+      label: "Account SID",
       required: true,
       sensitive: false,
-      description: "Automatically accept any offset price estimate returned by Cloverly?",
+      description: "Account SID from www.twilio.com/console.",
+    }, {
+      name: "authToken",
+      label: "Auth Token",
+      required: true,
+      sensitive: true,
+      description: "Auth Token from www.twilio.com/console.",
+    }, {
+      name: "from",
+      label: "Twilio Verified Phone # Caller Id",
+      required: true,
+      sensitive: false,
+      description: "A valid Twilio number from www.twilio.com/console/phone-numbers/verified.",
     },
   ]
 
   async execute(request: Hub.ActionRequest) {
 
-    if (!request.formParams.autoBuy) {
-      throw "Must specify auto acceptance settings."
+    if (!request.formParams.message) {
+      throw "Need a message."
     }
 
-    const body = request.formParams.footprint
+    const body = Hub.truncateString(request.formParams.message, TWILIO_MAX_MESSAGE_BODY)
 
     let phoneNumbers: string[] = []
     switch (request.type) {
@@ -64,7 +64,6 @@ export class OffsetAction extends Hub.Action {
         }
         phoneNumbers = qr.data.map((row: any) => (row[identifiableFields[0].name].value))
         break
-
       case Hub.ActionType.Cell:
         const value = request.params.value
         if (!value) {
@@ -74,7 +73,7 @@ export class OffsetAction extends Hub.Action {
         break
     }
 
-    const client = this.offsetClientFromRequest(request)
+    const client = this.twilioClientFromRequest(request)
 
     let response
     try {
@@ -96,32 +95,18 @@ export class OffsetAction extends Hub.Action {
   async form() {
     const form = new Hub.ActionForm()
     form.fields = [{
-      label: "Auto Accept Estimate?",
-      name: "autoAccept",
+      label: "Message",
+      name: "message",
       required: true,
-      type: "select",
-      options: [
-          { name: "yes", label: "Yes" },
-          { name: "no", label: "No" },
-          { name: "yes_with_threshold", label: "Yes, with threshold" },
-        ],
-      default: "yes_with_threshold"
-
-    },
-    {
-      label: "Cost Threshold ($)",
-      name: "cost_threshold",
-      required: false,
-      type: "string",
-      default: "5"
+      type: "textarea",
     }]
     return form
   }
 
-  private offsetClientFromRequest(request: Hub.ActionRequest) {
-    return offset(request.params.publicKey, request.params.authToken)
+  private twilioClientFromRequest(request: Hub.ActionRequest) {
+    return twilio(request.params.accountSid, request.params.authToken)
   }
 
 }
 
-Hub.addAction(new OffsetAction())
+Hub.addAction(new TwilioMessageAction())

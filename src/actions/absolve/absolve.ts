@@ -1,31 +1,24 @@
 import * as Hub from "../../hub"
+import JSON
 
-import * as absolve from "absolve"
+import * as httpRequest from "request-promise-native"
 
-const TAG = "carbon"
+const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
 
-export class AbsolveAction extends Hub.Action {
+export class absolveAction extends Hub.Action {
 
   name = "absolve"
   label = "Absolve - Manage your Carbon Footprint"
   iconName = "absolve/leaf.svg"
-  description = "Offset your carbon footprint from within Looker!"
-  supportedActionTypes = [Hub.ActionType.Cell, Hub.ActionType.Query]
-  supportedFormats = [Hub.ActionFormat.JsonDetail]
-  requiredFields = [{ tag: TAG }]
+  description = "Offset your Carbon Footprint"
+  supportedActionTypes = [Hub.ActionType.Cell]
   params = [
     {
-      name: "publicKey",
-      label: "Cloverly Public Key",
+      name: "privateKey",
+      label: "Cloverly API Private Key",
+      description: "API Token from https://dashboard.cloverly.app/dashboard/",
       required: true,
       sensitive: true,
-      description: "Public Key from https://cloverly.com",
-    }, {
-      name: "privateKey",
-      label: "Cloverly Private Key",
-      required: false,
-      sensitive: true,
-      description: "Private Key from https://cloverly.com",
     }, {
       name: "autoBuy",
       label: "Auto Accept Offsets",
@@ -36,53 +29,56 @@ export class AbsolveAction extends Hub.Action {
   ]
 
   async execute(request: Hub.ActionRequest) {
-
-    if (!request.formParams.autoBuy) {
-      throw "Must specify auto acceptance settings."
-    }
-
-    
-    let footprint: number
-
-    const value = Number(request.params.value)
-    if (!value) {
+    console.log(request)
+    console.log(request.params)
+    const footprint = Number(request.params.value)
+    if (!footprint) {
       throw "Couldn't get data from cell."
     }
-    footprint = value
+    console.log(footprint)
 
-    const client = this.absolveClientFromRequest(request)
-
-    let response
-    try {
-      await Promise.all(footprint.map(async (to) => {
-        const message = {
-          from: request.params.from,
-          to,
-          body,
-        }
-        return client.messages.create(message)
-      }))
-    } catch (e) {
-      response = {success: false, message: e.message}
+    const options = {
+      url: `${CL_API_URL}/purchases/carbon/`,
+      headers: {
+       'Content-type': 'application/json',
+       'Authorization': `Bearer private_key:${request.params.privateKey}`,
+      },
+      json: true,
+      resolveWithFullResponse: true,
+      body: JSON.stringify({"weight":{"value":35,"units":"kg"}}),
     }
 
-    return new Hub.ActionResponse(response)
+    try {
+      const response = await httpRequest.post(options).promise()
+      console.log(response)
+      return new Hub.ActionResponse({ success: true,message: response })
+    } catch (e) {
+      return new Hub.ActionResponse({ success: false, message: e.message })
+    }
   }
 
-  async form() {
+  async form(request: Hub.ActionRequest) {
     const form = new Hub.ActionForm()
-    form.fields = [{
-      label: "Auto Accept Estimate?",
-      name: "autoAccept",
-      required: true,
-      type: "select",
-      options: [
-          { name: "yes", label: "Yes" },
-          { name: "no", label: "No" },
-          { name: "yes_with_threshold", label: "Yes, with threshold" },
-        ],
-      default: "yes_with_threshold"
 
+    if (!request.params.privateKey) {
+      form.error = "No Cloverly API key configured. Please add it in the Admin > Actions panel."
+      return form
+    }
+
+    try {
+      await this.validateCloverlyToken(request.params.privateKey)
+
+      form.fields = [{
+        label: "Auto Accept Estimate?",
+        name: "autoAccept",
+        required: true,
+        type: "select",
+        options: [
+            { name: "yes", label: "Yes" },
+            { name: "no", label: "No" },
+            { name: "yes_with_threshold", label: "Yes, with threshold" },
+          ],
+        default: "yes_with_threshold"
     },
     {
       label: "Cost Threshold ($)",
@@ -90,14 +86,35 @@ export class AbsolveAction extends Hub.Action {
       required: false,
       type: "string",
       default: "5"
-    }]
+    },
+      ]
+    } catch (e) {
+      form.error = this.prettyAbsolveError(e)
+    }
+
     return form
   }
 
-  private absolveClientFromRequest(request: Hub.ActionRequest) {
-    return absolve(request.params.publicKey, request.params.authToken)
+  private async validateCloverlyToken(token: string) {
+    try {
+      await httpRequest.get({
+        url: `${CL_API_URL}/account`,
+        headers: {
+          Authorization: `Token ${token}`,
+        },
+        json: true,
+      }).promise()
+    } catch (e) {
+      throw new Error("Invalid token")
+    }
   }
 
+  private prettyAbsolveError(e: Error) {
+    if (e.message === "Invalid token") {
+      return "Your Cloverly API token is invalid."
+    }
+    return e.message
+  }
 }
 
-Hub.addAction(new AbsolveAction())
+Hub.addAction(new absolveAction())
