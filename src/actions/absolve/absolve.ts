@@ -77,26 +77,26 @@ export class absolveAction extends Hub.Action {
   }
 
 
-  private async validateCloverlyToken(token: string) {
-    try {
-      await httpRequest.get({
-        url: `${CL_API_URL}/account`,
-        headers: {
-          Authorization: `Token ${token}`,
-        },
-        json: true,
-      }).promise()
-    } catch (e) {
-      throw new Error("Invalid token")
-    }
-  }
+//   private async validateCloverlyToken(token: string) {
+//     try {
+//       await httpRequest.get({
+//         url: `${CL_API_URL}/account`,
+//         headers: {
+//           Authorization: `Token ${token}`,
+//         },
+//         json: true,
+//       }).promise()
+//     } catch (e) {
+//       throw new Error("Invalid token")
+//     }
+//   }
 
-  private prettyAbsolveError(e: Error) {
-    if (e.message === "Invalid token") {
-      return "Your Cloverly API token is invalid."
-    }
-    return e.message
-  }
-}
+//   private prettyAbsolveError(e: Error) {
+//     if (e.message === "Invalid token") {
+//       return "Your Cloverly API token is invalid."
+//     }
+//     return e.message
+//   }
+// }
 
 Hub.addAction(new absolveAction())
