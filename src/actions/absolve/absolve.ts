@@ -68,7 +68,7 @@ export class absolveAction extends Hub.Action {
       console.log(response.body)
       console.log(response.body.pretty_url)
       console.log(response.body.rec_cost_in_usd_cents)
-
+      throw "You have successfully offset your footprint! See the details at ${response.body.rec_cost_in_usd_cents}."
       return new Hub.ActionResponse({ success: true,message: response })
     } catch (e) {
       // console.log("nooo")
