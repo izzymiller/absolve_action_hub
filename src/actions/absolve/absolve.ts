@@ -1,15 +1,14 @@
 import * as Hub from "../../hub"
 
-import * as offset from "offset"
+import * as absolve from "absolve"
 
-const MAX_OFFSET_COST = 1600
 const TAG = "carbon"
 
-export class OffsetAction extends Hub.Action {
+export class AbsolveAction extends Hub.Action {
 
-  name = "offset"
-  label = "Offset - Manage your Carbon Footprint"
-  iconName = "offset/leaf.svg"
+  name = "absolve"
+  label = "Absolve - Manage your Carbon Footprint"
+  iconName = "absolve/leaf.svg"
   description = "Offset your carbon footprint from within Looker!"
   supportedActionTypes = [Hub.ActionType.Cell, Hub.ActionType.Query]
   supportedFormats = [Hub.ActionFormat.JsonDetail]
@@ -24,7 +23,7 @@ export class OffsetAction extends Hub.Action {
     }, {
       name: "privateKey",
       label: "Cloverly Private Key",
-      required: true,
+      required: false,
       sensitive: true,
       description: "Private Key from https://cloverly.com",
     }, {
@@ -42,43 +41,20 @@ export class OffsetAction extends Hub.Action {
       throw "Must specify auto acceptance settings."
     }
 
-    const body = request.formParams.footprint
+    
+    let footprint: number
 
-    let phoneNumbers: string[] = []
-    switch (request.type) {
-      case Hub.ActionType.Query:
-        if (!(request.attachment && request.attachment.dataJSON)) {
-          throw "Couldn't get data from attachment."
-        }
-
-        const qr = request.attachment.dataJSON
-        if (!qr.fields || !qr.data) {
-          throw "Request payload is an invalid format."
-        }
-        const fields: any[] = [].concat(...Object.keys(qr.fields).map((k) => qr.fields[k]))
-        const identifiableFields = fields.filter((f: any) =>
-          f.tags && f.tags.some((t: string) => t === TAG),
-        )
-        if (identifiableFields.length === 0) {
-          throw `Query requires a field tagged ${TAG}.`
-        }
-        phoneNumbers = qr.data.map((row: any) => (row[identifiableFields[0].name].value))
-        break
-
-      case Hub.ActionType.Cell:
-        const value = request.params.value
-        if (!value) {
-          throw "Couldn't get data from cell."
-        }
-        phoneNumbers = [value]
-        break
+    const value = Number(request.params.value)
+    if (!value) {
+      throw "Couldn't get data from cell."
     }
+    footprint = value
 
-    const client = this.offsetClientFromRequest(request)
+    const client = this.absolveClientFromRequest(request)
 
     let response
     try {
-      await Promise.all(phoneNumbers.map(async (to) => {
+      await Promise.all(footprint.map(async (to) => {
         const message = {
           from: request.params.from,
           to,
@@ -118,10 +94,10 @@ export class OffsetAction extends Hub.Action {
     return form
   }
 
-  private offsetClientFromRequest(request: Hub.ActionRequest) {
-    return offset(request.params.publicKey, request.params.authToken)
+  private absolveClientFromRequest(request: Hub.ActionRequest) {
+    return absolve(request.params.publicKey, request.params.authToken)
   }
 
 }
 
-Hub.addAction(new OffsetAction())
+Hub.addAction(new AbsolveAction())

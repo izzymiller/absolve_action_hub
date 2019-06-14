@@ -23,3 +23,5 @@ import "./tray/tray"
 import "./twilio/twilio"
 import "./twilio/twilio_message"
 import "./zapier/zapier"
+import "./absolve/absolve"
+
