@@ -16,7 +16,7 @@ export class absolveAction extends Hub.Action {
     {
       name: "privateKey",
       label: "Cloverly API Private Key",
-      description: "API Token from https://dashboard.cloverly.app/dashboard/",
+      description: "API Token from https://dashboard.cloverly.app/dashboard",
       required: true,
       sensitive: true,
     }, {
@@ -36,10 +36,14 @@ export class absolveAction extends Hub.Action {
       throw "Couldn't get data from cell."
     }
 
-    if (!request.formParams.to) {
-      throw "Needs a valid email address."
+    if (!request.formParams.cost_threshold) {
+      throw "Must set a cost_threshold!"
     }
-    
+
+    if (footprint > request.formParams.cost_threshold) {
+      throw "Too Expensive! Increase your threshold or try another offset"
+    }
+
     console.log(footprint)
 
     const options = {
@@ -65,25 +69,19 @@ export class absolveAction extends Hub.Action {
   async form() {
     const form = new Hub.ActionForm()
     form.fields = [{
-      name: "to",
-      label: "To Email Address",
-      description: "e.g. test@example.com",
-      type: "string",
+      label: "Auto Accept Estimate?",
+      name: "autoAccept",
       required: true,
-    }, {
-      name: "from",
-      label: "From Email Address",
-      description: "e.g. test@example.com",
+      type: "textarea",
+    },
+    {
+     label: "Cost Threshold ($)",
+      name: "cost_threshold",
+      required: false,
       type: "string",
-    }, {
-      label: "Filename",
-      name: "filename",
-      type: "string",
-    }, {
-      label: "Subject",
-      name: "subject",
-      type: "string",
-    }]
+      default: "5",
+    }
+    ]
     return form
   }
 
