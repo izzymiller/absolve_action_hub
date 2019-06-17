@@ -1,79 +1,86 @@
 import * as chai from "chai"
-import * as httpRequest from "request-promise-native"
 import * as sinon from "sinon"
 
 import * as Hub from "../../hub"
 
-import { DataRobotAction } from "./datarobot"
+import { DigitalOceanDropletAction } from "./digitalocean_droplet"
 
-const action = new DataRobotAction()
+const action = new DigitalOceanDropletAction()
+
+function expectDigitalOceanDropletActionMatch(request: Hub.ActionRequest, ...match: any[]) {
+
+  const dropletsRequestActionSpy = sinon.spy(
+    (dropletId: string, params: any, callback: (err: any, data: any) => void) => {
+    callback(null, `successfully called with ${dropletId} ${params}`)
+  })
+  const stubClient = sinon.stub(action as any, "digitalOceanClientFromRequest")
+    .callsFake(() => ({
+      dropletsRequestAction: dropletsRequestActionSpy,
+    }))
+  return chai.expect(action.execute(request)).to.be.fulfilled.then(() => {
+    chai.expect(dropletsRequestActionSpy.firstCall).to.have.been.calledWithMatch(...match)
+    stubClient.restore()
+  })
+}
 
 describe(`${action.constructor.name} unit tests`, () => {
 
   describe("action", () => {
-    let stubHttpPost: sinon.SinonStub
 
-    afterEach(() => {
-      stubHttpPost.restore()
-    })
-
-    it("sends the right body with URL", async () => {
+    it("errors if there is no attachment for query", () => {
       const request = new Hub.ActionRequest()
       request.type = Hub.ActionType.Query
-      request.params.datarobot_api_token = "token"
-      request.formParams = {
-        projectName: "DR Project from Looker",
-      }
-      request.scheduledPlan = {
-        downloadUrl: "https://testurl.com/downlaoad",
+      request.params = {
+        digitalocean_api_key: "mykey",
       }
 
-      const postSpy = sinon.spy((params: any) => {
-        chai.expect(params.url).to.equal("https://app.datarobot.com/api/v2/projects/")
-        chai.expect(params.headers.Authorization).to.equal("Token token")
-        chai.expect(params.body.projectName).to.equal("DR Project from Looker")
-        chai.expect(params.body.url).to.equal("https://testurl.com/downlaoad")
-        return {
-          promise: async () => new Promise<void>((resolve: any) => resolve()),
-        }
-      })
-      stubHttpPost = sinon.stub(httpRequest, "post").callsFake(postSpy)
+      return chai.expect(action.execute(request)).to.eventually
+        .be.rejectedWith("Couldn't get data from attachment.")
+    })
 
-      chai.expect(action.validateAndExecute(request)).to.be.fulfilled.then(() => {
-        chai.expect(postSpy).to.have.been.called
-      })
+    it("sends right params for query", () => {
+      const request = new Hub.ActionRequest()
+      request.type = Hub.ActionType.Query
+      request.params = {
+        digitalocean_api_key: "mykey",
+      }
+      request.attachment = {dataJSON: {
+        fields: [{name: "coolfield", tags: ["digitalocean_droplet_id"]}],
+        data: [
+          {coolfield: {value: "12345"}},
+        ],
+      }}
+      return expectDigitalOceanDropletActionMatch(request, 12345, {type: "power_off"})
+    })
+
+    it("errors if there is no attachment for cell", () => {
+      const request = new Hub.ActionRequest()
+      request.type = Hub.ActionType.Cell
+      request.params = {
+        digitalocean_api_key: "mykey",
+      }
+      return chai.expect(action.execute(request)).to.eventually
+        .be.rejectedWith("Couldn't get data from attachment.")
+    })
+
+    it("sends right params for cell", () => {
+      const request = new Hub.ActionRequest()
+      request.type = Hub.ActionType.Cell
+      request.params = {
+        digitalocean_api_key: "mykey",
+        value: "12345",
+      }
+      return expectDigitalOceanDropletActionMatch(request, 12345, {type: "power_off"})
     })
 
   })
 
   describe("form", () => {
 
-    it("has form", () => {
-      chai.expect(action.hasForm).equals(true)
-    })
-
-    it("has form with projectName param", () => {
-      const stubGet = sinon.stub(action, "validateDataRobotToken" as any).callsFake(async () => {
-        return new Promise<any>((resolve: any) => resolve())
-      })
-
-      const request = new Hub.ActionRequest()
-      request.params.datarobot_api_token = "token"
-      const form = action.validateAndFetchForm(request)
-
-      chai.expect(form).to.eventually.deep.equal({
-        fields: [
-          {
-            label: "The name of the project to be created",
-            name: "projectName",
-            required: false,
-            type: "string",
-          },
-        ],
-      })
-
-      stubGet.restore()
+    it("doesn't have form", () => {
+      chai.expect(action.hasForm).equals(false)
     })
 
   })
+
 })

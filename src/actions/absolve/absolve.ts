@@ -51,7 +51,7 @@ export class absolveAction extends Hub.Action {
       },
       json: true,
       resolveWithFullResponse: true,
-      body: {'weight':{'value':35,'units':'kg'}},
+      body: {'weight':{'value':footprint,'units':'kg'}},
     }
 
     try {
@@ -85,28 +85,6 @@ export class absolveAction extends Hub.Action {
     ]
     return form
   }
-
-
-  // private async validateCloverlyToken(token: string) {
-  //   try {
-  //     await httpRequest.get({
-  //       url: `${CL_API_URL}/account`,
-  //       headers: {
-  //         Authorization: `Token ${token}`,
-  //       },
-  //       json: true,
-  //     }).promise()
-  //   } catch (e) {
-  //     throw new Error("Invalid token")
-  //   }
-  // }
-
-  // private prettyAbsolveError(e: Error) {
-  //   if (e.message === "Invalid token") {
-  //     return "Your Cloverly API token is invalid."
-  //   }
-  //   return e.message
-  // }
 }
 
 Hub.addAction(new absolveAction())
