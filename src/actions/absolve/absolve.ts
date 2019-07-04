@@ -29,8 +29,6 @@ export class absolveAction extends Hub.Action {
   ]
 
   async execute(request: Hub.ActionRequest) {
-    // console.log(request)
-    // console.log(request.params)
     const footprint = Number(request.params.value)
     if (!footprint) {
       throw "Couldn't get data from cell."
