@@ -19,13 +19,14 @@ export class absolveAction extends Hub.Action {
       description: "API Token from https://dashboard.cloverly.app/dashboard",
       required: true,
       sensitive: true,
-    }, {
-      name: "autoBuy",
-      label: "Auto Accept Offsets",
-      required: true,
-      sensitive: false,
-      description: "Automatically accept any offset price estimate returned by Cloverly?",
     },
+    //  {
+    //   name: "autoBuy",
+    //   label: "Auto Accept Offsets",
+    //   required: true,
+    //   sensitive: false,
+    //   description: "Automatically accept any offset price estimate returned by Cloverly?",
+    // },
   ]
 
   async execute(request: Hub.ActionRequest) {
@@ -49,7 +50,7 @@ export class absolveAction extends Hub.Action {
       },
       json: true,
       resolveWithFullResponse: true,
-      body: {'weight':{'value':footprint,'units':'kg'}},
+      body: {'weight':{'value':footprint,'units':'pounds'}},
     }
 
     try {
