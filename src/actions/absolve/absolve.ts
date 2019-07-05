@@ -59,7 +59,7 @@ export class absolveAction extends Hub.Action {
       let receipt = response.body.pretty_url
       console.log(cost)
       console.log(receipt)
-      console.log("You have successfully offset your footprint, spending ${response.body.rec_cost_in_usd_cents}! See the details at ${response.body.pretty_url}.")
+      console.log("You have successfully offset your footprint, spending ${cost}! See the details at ${receipt}.")
       return new Hub.ActionResponse({ success: true,message: response })
     } catch (e) {
       return new Hub.ActionResponse({ success: false, message: e.message })
@@ -69,18 +69,44 @@ export class absolveAction extends Hub.Action {
   async form() {
     const form = new Hub.ActionForm()
     form.fields = [{
-      label: "Auto Accept Estimate?",
-      name: "autoAccept",
+      label: "Use Thresholds?",
+      name: "useThreshold",
       required: true,
-      type: "textarea",
+      type: "select",
+      options: [
+        {name: "no", label: "No"},
+        {name: "yes", label: "Yes"},
+      ],
+      default: "yes",
     },
     {
-     label: "Cost Threshold ($)",
-      name: "cost_threshold",
+      label: "Percentage Margin Threshold",
+      name: "percentThreshold",
       required: false,
       type: "string",
-      default: "5",
-    }
+      default: "2"
+    },
+    {
+     label: "Manual Cost Threshold ($)",
+      name: "costThreshold",
+      required: false,
+      type: "string",
+      default: "",
+    },
+    {
+      label: "Offset Type",
+       description: "Type of REC. Recommended left blank for optimal price matching.",
+       name: "offsetType",
+       required: false,
+       type: "select",
+       options: [
+        {name: "wind", label: "Wind"},
+        {name: "solar", label: "Solar"},
+        {name: "biomass", label: "Biomass"},
+        {name: "solar", label: "Solar"}
+      ],
+       default: "",
+     },
     ]
     return form
   }
