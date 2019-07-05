@@ -35,11 +35,11 @@ export class absolveAction extends Hub.Action {
       throw "Couldn't get data from cell."
     }
 
-    if (!request.formParams.cost_threshold) {
+    if (!request.formParams.costThreshold) {
       throw "Must set a cost_threshold!"
     }
 
-    if (footprint > Number(request.formParams.cost_threshold)) {
+    if (footprint > Number(request.formParams.costThreshold)) {
       throw "Too Expensive! Increase your threshold or try another offset"
     }
     const options = {
@@ -103,7 +103,8 @@ export class absolveAction extends Hub.Action {
         {name: "wind", label: "Wind"},
         {name: "solar", label: "Solar"},
         {name: "biomass", label: "Biomass"},
-        {name: "solar", label: "Solar"}
+        {name: "solar", label: "Solar"},
+        {name: "", label: ""}
       ],
        default: "",
      },
