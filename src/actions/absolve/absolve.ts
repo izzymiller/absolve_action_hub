@@ -60,14 +60,18 @@ export class absolveAction extends Hub.Action {
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
       if (request.formParams.costThreshold && !request.formParams.percentThreshold) {
         let threshold = Number(request.formParams.costThreshold)
+        console.log("Threshold Set from cost")
         console.log(threshold)
       } else if (!request.formParams.costThreshold && request.formParams.percentThreshold) {
+        console.log("Threshold Set from percent")
         let threshold = Number(request.formParams.percentThreshold)*2000
         console.log(threshold)
       } else if (request.formParams.costThreshold && request.formParams.percentThreshold) {
+        console.log("Threshold Set from min of both")
         let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*2000))
         console.log(threshold)
       } else {
+        console.log("Threshold Set from null")
         let threshold = null
         console.log(threshold)
       }
