@@ -54,6 +54,7 @@ export class absolveAction extends Hub.Action {
     try {
       const response = await httpRequest.post(estimate_options).promise()
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
+      let estimateSlug = response.body.slug
       console.log("Estimate successfully returned:",estimateCost)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
@@ -73,16 +74,16 @@ export class absolveAction extends Hub.Action {
       ///If estimate is within bounds, convert to purchase
 
         const purchase_options = {
-          url: `${CL_API_URL}/purchases/carbon/`,
+          url: `${CL_API_URL}/purchases/`,
           headers: {
            'Content-type': 'application/json',
            'Authorization': `Bearer private_key:${request.params.privateKey}`,
           },
           json: true,
           resolveWithFullResponse: true,
-          body: {'weight':{'value':footprint,'units':'kg'}},
+          body: {'estimate_slug':estimateSlug},
         }
-        ///Execute purchase
+        ///Convert estimate to purchase
         try {
           const response = await httpRequest.post(purchase_options).promise()
           let cost = response.body.total_cost_in_usd_cents
