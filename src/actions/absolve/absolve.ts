@@ -54,34 +54,22 @@ export class absolveAction extends Hub.Action {
     try {
       const response = await httpRequest.post(estimate_options).promise()
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
-      console.log(estimateCost)
-      console.log("Estimate successfully returned")
+      console.log("Estimate successfully returned:",estimateCost)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
       if (request.formParams.costThreshold && !request.formParams.percentThreshold) {
         var threshold = Number(request.formParams.costThreshold)
-        console.log("Threshold Set from cost")
-        console.log(threshold)
       } else if (!request.formParams.costThreshold && request.formParams.percentThreshold) {
-        console.log("Threshold Set from percent")
         var threshold = Number(request.formParams.percentThreshold)*2000
-        console.log(threshold)
       } else if (request.formParams.costThreshold && request.formParams.percentThreshold) {
-        console.log("Threshold Set from min of both")
         var threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*2000))
-        console.log(threshold)
       } else {
-        console.log("Threshold Set from null")
         var threshold = Number(undefined)
-        console.log(threshold)
       }
       
       ///Check estimate against thresholds
       if (estimateCost < threshold || request.formParams.useThreshold == "no") {
-        console.log(threshold)
-        console.log(estimateCost)
-        console.log("estimate-thresh")
-        console.log(estimateCost-threshold)
+
       ///If estimate is within bounds, convert to purchase
 
         const purchase_options = {
@@ -98,8 +86,7 @@ export class absolveAction extends Hub.Action {
         try {
           const response = await httpRequest.post(purchase_options).promise()
           let cost = response.body.total_cost_in_usd_cents
-          console.log(cost)
-          console.log("You have successfully offset your footprint, spending ${cost}! See the details at ${receipt}.")
+          console.log("You have successfully offset your footprint, spending",cost,"!")
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
           console.log("Failure with purchase execution")
@@ -107,11 +94,6 @@ export class absolveAction extends Hub.Action {
         }
       ///If the estimate was not explicitly accepted, default to failure.
       } else {
-        console.log(threshold)
-        console.log(estimateCost)
-        console.log("estimate-thresh")
-        console.log(estimateCost-threshold)
-        console.log(request.formParams.useThreshold)
         console.log("Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity.")
         return new Hub.ActionResponse({ success: false, message: "Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity." })
       }
