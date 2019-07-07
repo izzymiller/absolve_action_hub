@@ -109,6 +109,7 @@ export class absolveAction extends Hub.Action {
       ///If the estimate was not explicitly accepted, default to failure.
       } else {
         estimateAccepted = false
+        console.log(request.formParams.useThreshold)
         console.log("Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity.")
         return new Hub.ActionResponse({ success: false, message: "Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity." })
       }
