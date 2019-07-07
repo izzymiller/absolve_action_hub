@@ -1,6 +1,7 @@
 import * as Hub from "../../hub"
 
 import * as httpRequest from "request-promise-native"
+import { disableConsoleAlerts } from "raven";
 
 const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
 const TAG = "co2_footprint"
@@ -88,6 +89,20 @@ export class absolveAction extends Hub.Action {
           const response = await httpRequest.post(purchase_options).promise()
           let cost = response.body.total_cost_in_usd_cents
           console.log("You have successfully offset your footprint, spending",cost,"!")
+
+
+          ///Before ending, send a webhook to refresh the record in the offset database
+          const refresh_options = {
+            url: `https://us-central1-absolve.cloudfunctions.net/refresh_offset_data`,
+            headers: {
+             'Content-type': 'application/json',
+            },
+            json: true,
+            resolveWithFullResponse: true,
+            body: {'bucketName': request.params.bucketName,'datasetId': request.params.datasetId,'tableId': request.params.tableId},
+          }
+          await httpRequest.post(refresh_options).promise()
+          console.log('Dataset refreshed successfully')
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
           console.log("Failure with purchase execution")
@@ -120,7 +135,7 @@ export class absolveAction extends Hub.Action {
       default: "yes",
     },
     {
-      label: "Threshold: Percentage of Total Gross Margin",
+      label: "Threshold: Percentage of Total Gross Margin (optional)",
       name: "percentThreshold",
       description: "Limits your offset cost at a percentage of the Total Gross Margin associated with the current grouping. Requires TGM field to be in-query",
       required: false,
@@ -128,7 +143,7 @@ export class absolveAction extends Hub.Action {
       default: "2"
     },
     {
-     label: "Threshold: Manual Dollar Value",
+     label: "Threshold: Manual Dollar Value (optional)",
       name: "costThreshold",
       description: "Limits your offset cost at the dollar value specified here. If set, overrides TGM threshold.",
       required: false,
