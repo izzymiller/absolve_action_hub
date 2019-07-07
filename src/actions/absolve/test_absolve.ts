@@ -31,6 +31,7 @@ describe(`${action.constructor.name} unit tests`, () => {
         },
         {
           label: "Percentage Margin Threshold",
+          description: "Limit cost of the offset to a percentage of the Total Gross Margin of the record. Requires a TGM field present in the explore."
           name: "percentThreshold",
           required: false,
           type: "string",
@@ -53,7 +54,8 @@ describe(`${action.constructor.name} unit tests`, () => {
             {name: "wind", label: "Wind"},
             {name: "solar", label: "Solar"},
             {name: "biomass", label: "Biomass"},
-            {name: "solar", label: "Solar"}
+            {name: "solar", label: "Solar"},
+            {name: "", label: ""}
           ],
            default: "",
          },
