@@ -75,15 +75,14 @@ export class absolveAction extends Hub.Action {
         let threshold = null
         console.log(threshold)
       }
-
-      ///For safety's sake, initialize our estimateAccepted as false
-      let estimateAccepted: boolean = false;
-      console.log(estimateAccepted)
       
       ///Check estimate against thresholds
-      if (request.formParams.useThreshold == "yes" && estimateCost < threshold || request.formParams.useThreshold == "no") {
+      if (estimateCost < threshold || request.formParams.useThreshold == "no") {
+        console.log(threshold)
+        console.log(estimateCost)
+        console.log("estimate-thresh")
+        console.log(estimateCost-threshold)
       ///If estimate is within bounds, convert to purchase
-        estimateAccepted = true
 
         const purchase_options = {
           url: `${CL_API_URL}/purchases/carbon/`,
@@ -108,7 +107,10 @@ export class absolveAction extends Hub.Action {
         }
       ///If the estimate was not explicitly accepted, default to failure.
       } else {
-        estimateAccepted = false
+        console.log(threshold)
+        console.log(estimateCost)
+        console.log("estimate-thresh")
+        console.log(estimateCost-threshold)
         console.log(request.formParams.useThreshold)
         console.log("Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity.")
         return new Hub.ActionResponse({ success: false, message: "Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity." })
