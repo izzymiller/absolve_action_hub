@@ -1,7 +1,6 @@
 import * as Hub from "../../hub"
 
 import * as httpRequest from "request-promise-native"
-import { disableConsoleAlerts } from "raven";
 
 const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
 const TAG = "co2_footprint"
@@ -20,6 +19,30 @@ export class absolveAction extends Hub.Action {
       description: "API Token from https://dashboard.cloverly.app/dashboard",
       required: true,
       sensitive: true,
+    },
+    {
+      name: "bucketName",
+      label: "GCS Bucket Name- Optional",
+      description: "Only necessary if you are using the full Absolve functionality and want to pipe offset data back to a BQ dataset",
+      required: false,
+      default: "absolve_bucket",
+      sensitive: false,
+    },
+    {
+      name: "datasetId",
+      label: "BQ DatasetID- Optional",
+      description: "Only necessary if you are using the full Absolve functionality",
+      required: false,
+      default: "offset_purchases",
+      sensitive: false,
+    },
+    {
+      name: "tableId",
+      label: "BQ Table Name",
+      description: "Only necessary if you are using the ful lAbsolve asdad",
+      required: false,
+      default: "offsets",
+      sensitive: false,
     },
     //  {
     //   name: "autoBuy",
