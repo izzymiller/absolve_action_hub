@@ -56,23 +56,23 @@ export class absolveAction extends Hub.Action {
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
       console.log(estimateCost)
       console.log("Estimate successfully returned")
-      let threshold: number = 0
+      
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
       if (request.formParams.costThreshold && !request.formParams.percentThreshold) {
-        let threshold = Number(request.formParams.costThreshold)
+        var threshold = Number(request.formParams.costThreshold)
         console.log("Threshold Set from cost")
         console.log(threshold)
       } else if (!request.formParams.costThreshold && request.formParams.percentThreshold) {
         console.log("Threshold Set from percent")
-        let threshold = Number(request.formParams.percentThreshold)*2000
+        var threshold = Number(request.formParams.percentThreshold)*2000
         console.log(threshold)
       } else if (request.formParams.costThreshold && request.formParams.percentThreshold) {
         console.log("Threshold Set from min of both")
-        let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*2000))
+        var threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*2000))
         console.log(threshold)
       } else {
         console.log("Threshold Set from null")
-        let threshold = null
+        var threshold = Number(undefined)
         console.log(threshold)
       }
       
