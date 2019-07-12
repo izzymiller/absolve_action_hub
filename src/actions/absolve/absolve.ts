@@ -89,7 +89,7 @@ export class absolveAction extends Hub.Action {
       console.log("Estimate successfully returned:",estimateCost)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
-      if (request.formParams.costThreshold && !request.formParams.percentThreshold) {
+      if (request.formParams.costThreshold && !request.formParams.percentThreshold || Number(request.formParams.percentThreshold) < .001) {
         var threshold = Number(request.formParams.costThreshold)
       } else if (!request.formParams.costThreshold && request.formParams.percentThreshold) {
         var threshold = Number(request.formParams.percentThreshold)*2000
@@ -118,7 +118,7 @@ export class absolveAction extends Hub.Action {
         try {
           const response = await httpRequest.post(purchase_options).promise()
           let cost = response.body.total_cost_in_usd_cents
-          console.log("You have successfully offset your footprint, spending",cost,"!")
+          console.log("You have successfully offset your footprint of",footprint, ", spending",cost,"with a threshold of", threshold,",!")
 
 
           ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
