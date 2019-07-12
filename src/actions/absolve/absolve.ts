@@ -4,6 +4,7 @@ import * as httpRequest from "request-promise-native"
 
 const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
 const TAG = "co2_footprint"
+
 export class absolveAction extends Hub.Action {
 
   name = "absolve"
@@ -21,9 +22,22 @@ export class absolveAction extends Hub.Action {
       sensitive: true,
     },
     {
+      name: "use_full_data_pipeline",
+      label: "Use data pipeline to push purchased offset data back into a BigQuery connection",
+      description: "API Token from https://dashboard.cloverly.app/dashboard",
+      required: true,
+      type: "select",
+      sensitive: false,
+      options: [
+        {name: "no", label: "No"},
+        {name: "yes", label: "Yes"},
+      ],
+      default: "yes",
+    },
+    {
       name: "bucketName",
       label: "GCS Bucket Name- Optional",
-      description: "Only necessary if you are using the full Absolve functionality and want to pipe offset data back to a BQ dataset",
+      description: "Only required if you are using the full data pipeline ",
       required: false,
       default: "absolve_bucket",
       sensitive: false,
@@ -31,7 +45,7 @@ export class absolveAction extends Hub.Action {
     {
       name: "datasetId",
       label: "BQ DatasetID- Optional",
-      description: "Only necessary if you are using the full Absolve functionality",
+      description: "Only required if you are using the full data pipeline",
       required: false,
       default: "offset_purchases",
       sensitive: false,
@@ -39,18 +53,11 @@ export class absolveAction extends Hub.Action {
     {
       name: "tableId",
       label: "BQ Table Name",
-      description: "Only necessary if you are using the ful lAbsolve asdad",
+      description: "Only required if you are using the full data pipeline",
       required: false,
       default: "offsets",
       sensitive: false,
     },
-    //  {
-    //   name: "autoBuy",
-    //   label: "Auto Accept Offsets",
-    //   required: true,
-    //   sensitive: false,
-    //   description: "Automatically accept any offset price estimate returned by Cloverly?",
-    // },
   ]
 
   async execute(request: Hub.ActionRequest) {
@@ -114,27 +121,30 @@ export class absolveAction extends Hub.Action {
           console.log("You have successfully offset your footprint, spending",cost,"!")
 
 
-          ///Before ending, send a webhook to refresh the record in the offset database
-          const refresh_options = {
-            url: `https://us-central1-absolve.cloudfunctions.net/refresh_offset_data`,
-            headers: {
-             'Content-type': 'application/json',
-            },
-            json: true,
-            resolveWithFullResponse: true,
-            body: {'bucketName': request.params.bucketName,'datasetId': request.params.datasetId,'tableId': request.params.tableId},
+          ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
+          if(request.params.use_full_data_pipeline == "yes") {
+            const refresh_options = {
+              url: `https://us-central1-absolve.cloudfunctions.net/refresh_offset_data`,
+              headers: {
+              'Content-type': 'application/json',
+              },
+              json: true,
+              resolveWithFullResponse: true,
+              body: {'bucketName': request.params.bucketName,'datasetId': request.params.datasetId,'tableId': request.params.tableId},
+            }
+            await httpRequest.post(refresh_options).promise()
+            console.log('Dataset refreshed successfully')
           }
-          await httpRequest.post(refresh_options).promise()
-          console.log('Dataset refreshed successfully')
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
           console.log("Failure with purchase execution")
           return new Hub.ActionResponse({ success: false, message: e.message })
         }
+
       ///If the estimate was not explicitly accepted, default to failure.
       } else {
-        console.log("Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity.")
-        return new Hub.ActionResponse({ success: false, message: "Estimate for offset was greater than threshold. Increase threshold or decrease offset quantity." })
+        console.log("Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity.")
+        return new Hub.ActionResponse({ success: false, message: "Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity." })
       }
     ///Catch failures with the entire thing
     } catch (e) {
@@ -148,7 +158,7 @@ export class absolveAction extends Hub.Action {
     const form = new Hub.ActionForm()
     form.fields = [{
       label: "Use Thresholds?",
-      name: "useThreshold",
+      name: "useThresholds",
       required: true,
       type: "select",
       options: [
@@ -171,7 +181,7 @@ export class absolveAction extends Hub.Action {
       description: "Limits your offset cost at the dollar value specified here. If set, overrides TGM threshold.",
       required: false,
       type: "string",
-      default: "",
+      default: "200",
     },
     {
       label: "Advanced: Offset Type",
@@ -186,7 +196,7 @@ export class absolveAction extends Hub.Action {
         {name: "solar", label: "Solar"},
         {name: "", label: ""}
       ],
-       default: "",
+       default: "wind",
      },
     ]
     return form
