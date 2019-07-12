@@ -24,7 +24,7 @@ export class absolveAction extends Hub.Action {
     {
       name: "use_full_data_pipeline",
       label: "Use data pipeline to push purchased offset data back into a BigQuery connection",
-      description: "API Token from https://dashboard.cloverly.app/dashboard",
+      description: "Select Yes to use the full data pipeline included. Requires setup per: README.MD",
       required: true,
       type: "select",
       sensitive: false,
@@ -100,7 +100,7 @@ export class absolveAction extends Hub.Action {
       }
       
       ///Check estimate against thresholds
-      if (estimateCost < threshold || request.formParams.useThreshold == "no") {
+      if (estimateCost < threshold || request.formParams.useThresholds == "no") {
 
       ///If estimate is within bounds, convert to purchase
 
