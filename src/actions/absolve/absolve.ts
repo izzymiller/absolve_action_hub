@@ -96,12 +96,16 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(estimate_options).promise()
+      console.log("beep beep line 99")
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
+      console.log("beep beep line 101")
       let estimateSlug = response.body.slug
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
+      console.log("beep beep line 106")
       let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*tgm))
+      console.log("beep beep line 107")
       console.log("Threshold:",threshold)
       ///Check estimate against thresholds
       if (estimateCost <= threshold || request.formParams.useThresholds == "no") {
