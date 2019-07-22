@@ -1,12 +1,10 @@
 import * as Hub from "../../hub"
-
 import * as httpRequest from "request-promise-native"
 
 const CL_API_URL = "https://api.cloverly.app/2019-03-beta"
 const TAG = "co2_footprint"
 
 export class absolveAction extends Hub.Action {
-
   name = "absolve"
   label = "Purchase carbon offsets"
   iconName = "absolve/leaf.svg"
@@ -37,7 +35,7 @@ export class absolveAction extends Hub.Action {
     {
       name: "bucketName",
       label: "GCS Bucket Name- Optional",
-      description: "Only required if you are using the full data pipeline ",
+      description: "Only required if you are using the full data pipeline",
       required: false,
       default: "absolve_bucket",
       sensitive: false,
@@ -47,7 +45,7 @@ export class absolveAction extends Hub.Action {
       label: "BQ DatasetID- Optional",
       description: "Only required if you are using the full data pipeline",
       required: false,
-      default: "offset_purchases",
+      default: "carbon_offsets",
       sensitive: false,
     },
     {
@@ -55,22 +53,33 @@ export class absolveAction extends Hub.Action {
       label: "BQ Table Name",
       description: "Only required if you are using the full data pipeline",
       required: false,
-      default: "offsets",
+      default: "offset_purchases",
       sensitive: false,
     },
   ]
 
   async execute(request: Hub.ActionRequest) {
-    const footprint = Number(request.params.value)
-    if (!footprint) {
+    let tgm = Number(undefined)
+    let footprint = Number(undefined)
+    if(!request.params.value) {
       throw "Couldn't get data from cell."
+    } else if(request.params.value.length == 2) {
+      footprint = Number(request.params.value.split("|")[0])
+      tgm = Number(request.params.value.split("|")[1])
+    } else if(request.params.value.length == 1) {
+      footprint =  Number(request.params.value.split("|")[0])
+      tgm = Number(null)
     }
 
     if (request.formParams.useThreshold == "yes" && !request.formParams.costThreshold && !request.formParams.percentThreshold) {
       throw "Threshold use required, but no thresholds set!"
     }
 
-    ///First get an estimate to compare to our thresholds
+    if (request.formParams.useThreshold == "yes" && request.formParams.percentThreshold && !tgm) {
+      throw "Percent Threshold set, but TGM is not included in query!"
+    }
+
+    ///Get an estimate to compare to our thresholds
     const estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
@@ -86,23 +95,15 @@ export class absolveAction extends Hub.Action {
       const response = await httpRequest.post(estimate_options).promise()
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
       let estimateSlug = response.body.slug
-      console.log("Estimate successfully returned:",estimateCost)
+      console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
-      if (request.formParams.costThreshold && !request.formParams.percentThreshold) {
-        var threshold = Number(request.formParams.costThreshold)
-      } else if (!request.formParams.costThreshold && request.formParams.percentThreshold) {
-        var threshold = Number(request.formParams.percentThreshold)*2000
-      } else if (request.formParams.costThreshold && request.formParams.percentThreshold) {
-        var threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*2000))
-      } else {
-        var threshold = Number(undefined)
-      }
-      
+      let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*tgm))
+      console.log("Threshold:",threshold)
       ///Check estimate against thresholds
-      if (estimateCost < threshold || request.formParams.useThresholds == "no") {
+      if (estimateCost <= threshold || request.formParams.useThresholds == "no") {
 
-      ///If estimate is within bounds, convert to purchase
+      ///If estimate is within bounds or thresholds do not apply, convert to purchase
 
         const purchase_options = {
           url: `${CL_API_URL}/purchases/`,
@@ -114,37 +115,53 @@ export class absolveAction extends Hub.Action {
           resolveWithFullResponse: true,
           body: {'estimate_slug':estimateSlug},
         }
-        ///Convert estimate to purchase
+
         try {
           const response = await httpRequest.post(purchase_options).promise()
           let cost = response.body.total_cost_in_usd_cents
-          console.log("You have successfully offset your footprint, spending",cost,"!")
+          console.log(`You have successfully offset your footprint, spending ${cost}!`)
 
 
           ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
           if(request.params.use_full_data_pipeline == "yes") {
-            const refresh_options = {
-              url: `https://us-central1-absolve.cloudfunctions.net/refresh_offset_data`,
-              headers: {
-              'Content-type': 'application/json',
-              },
-              json: true,
-              resolveWithFullResponse: true,
-              body: {'bucketName': request.params.bucketName,'datasetId': request.params.datasetId,'tableId': request.params.tableId},
+              refresh_data(request.params.bucketName, request.params.datasetId, request.params.tableId)
             }
-            await httpRequest.post(refresh_options).promise()
-            console.log('Dataset refreshed successfully')
-          }
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
           console.log("Failure with purchase execution")
           return new Hub.ActionResponse({ success: false, message: e.message })
         }
 
-      ///If the estimate was not explicitly accepted, default to failure.
+      ///If the estimate was higher than the threshold but alwaysBuy is on, spend the threshold.
+      } else if( estimateCost > threshold && request.formParams.alwaysBuy == "yes") {
+        const purchase_options = {
+          url: `${CL_API_URL}/purchases/currency`,
+          headers: {
+           'Content-type': 'application/json',
+           'Authorization': `Bearer private_key:${request.params.privateKey}`,
+          },
+          json: true,
+          resolveWithFullResponse: true,
+          body: {'currency':{'value':threshold,'units':'usd'}},
+        }
+        ///Make the purchase
+        try {
+          const response = await httpRequest.post(purchase_options).promise()
+          let cost = response.body.total_cost_in_usd_cents
+          console.log(`You have successfully offset your footprint, spending ${cost}!`)
+          
+          ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
+          if(request.params.use_full_data_pipeline == "yes") {
+            refresh_data(request.params.bucketName, request.params.datasetId, request.params.tableId)
+          }
+          return new Hub.ActionResponse({ success: true,message: response })
+        } catch (e) {
+          console.log("Failure with purchase execution")
+          return new Hub.ActionResponse({ success: false, message: e.message })
+        }
       } else {
-        console.log("Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity.")
-        return new Hub.ActionResponse({ success: false, message: "Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity." })
+        console.log(`Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity.`)
+        return new Hub.ActionResponse({ success: false, message: `Estimate for offset (${estimateCost}) was greater than threshold (${threshold}). Increase threshold or decrease offset quantity.` })
       }
     ///Catch failures with the entire thing
     } catch (e) {
@@ -152,7 +169,6 @@ export class absolveAction extends Hub.Action {
       return new Hub.ActionResponse({ success: false, message: e.message })
     }
   }
-
 
   async form() {
     const form = new Hub.ActionForm()
@@ -166,6 +182,17 @@ export class absolveAction extends Hub.Action {
         {name: "yes", label: "Yes"},
       ],
       default: "yes",
+    },
+    {
+      label: "Purchase Threshold amount regardless of estimate",
+      name: "alwaysBuy",
+      required: true,
+      type: "select",
+      options: [
+        {name: "no", label: "No"},
+        {name: "yes", label: "Yes"},
+      ],
+      default: "no",
     },
     {
       label: "Threshold: Percentage of Total Gross Margin (optional)",
@@ -183,24 +210,28 @@ export class absolveAction extends Hub.Action {
       type: "string",
       default: "200",
     },
-    {
-      label: "Advanced: Offset Type",
-       description: "Type of REC. Recommended left blank for optimal price matching.",
-       name: "offsetType",
-       required: false,
-       type: "select",
-       options: [
-        {name: "wind", label: "Wind"},
-        {name: "solar", label: "Solar"},
-        {name: "biomass", label: "Biomass"},
-        {name: "solar", label: "Solar"},
-        {name: "", label: ""}
-      ],
-       default: "wind",
-     },
     ]
     return form
   }
+}
+
+async function refresh_data(bucketName: string | undefined , datasetId: string | undefined, tableId: string | undefined) {
+  try {
+    const refresh_options = {
+      url: `https://us-central1-absolve.cloudfunctions.net/refresh_offset_data`,
+      headers: {
+      'Content-type': 'application/json',
+      },
+      json: true,
+      resolveWithFullResponse: true,
+      body: {'bucketName': bucketName,'datasetId': datasetId,'tableId': tableId},
+    }
+    await httpRequest.post(refresh_options).promise()
+    return 'Dataset refreshed successfully';
+  } catch(err) {
+    console.log('Error',err.message);
+  }
+
 }
 
 Hub.addAction(new absolveAction())
