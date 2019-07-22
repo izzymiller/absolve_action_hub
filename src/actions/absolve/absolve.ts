@@ -61,11 +61,13 @@ export class absolveAction extends Hub.Action {
   async execute(request: Hub.ActionRequest) {
     let tgm = Number(undefined)
     let footprint = Number(undefined)
+    console.log("beep beep line 64")
     if(!request.params.value) {
       throw "Couldn't get data from cell."
     } else if(request.params.value.length == 2) {
       footprint = Number(request.params.value.split("|")[0])
       tgm = Number(request.params.value.split("|")[1])
+      console.log("failure in split")
     } else if(request.params.value.length == 1) {
       footprint =  Number(request.params.value.split("|")[0])
       tgm = Number(null)
@@ -78,6 +80,7 @@ export class absolveAction extends Hub.Action {
     if (request.formParams.useThreshold == "yes" && request.formParams.percentThreshold && !tgm) {
       throw "Percent Threshold set, but TGM is not included in query!"
     }
+    console.log("beep beep line 81")
 
     ///Get an estimate to compare to our thresholds
     const estimate_options = {
