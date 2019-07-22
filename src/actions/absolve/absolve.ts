@@ -83,6 +83,7 @@ export class absolveAction extends Hub.Action {
     console.log("beep beep line 81")
 
     ///Get an estimate to compare to our thresholds
+    console.log(footprint)
     const estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
@@ -93,8 +94,10 @@ export class absolveAction extends Hub.Action {
       resolveWithFullResponse: true,
       body: {'weight':{'value':footprint,'units':'kg'}},
     }
+    console.log(footprint)
 
     try {
+      console.log("beepbeep line 98")
       const response = await httpRequest.post(estimate_options).promise()
       console.log("beep beep line 99")
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
