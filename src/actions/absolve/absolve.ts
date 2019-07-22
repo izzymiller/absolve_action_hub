@@ -59,17 +59,17 @@ export class absolveAction extends Hub.Action {
   ]
 
   async execute(request: Hub.ActionRequest) {
-    let tgm = Number(undefined)
-    let footprint = Number(undefined)
+    var tgm = Number(undefined)
+    var footprint = Number(undefined)
     console.log("beep beep line 64")
     if(!request.params.value) {
       throw "Couldn't get data from cell."
-    } else if(request.params.value.length == 2) {
-      footprint = Number(request.params.value.split("|")[0])
+    } else if(request.params.value.includes('|')) {
+      footprint = Number(request.params.value)
       tgm = Number(request.params.value.split("|")[1])
       console.log("failure in split")
-    } else if(request.params.value.length == 1) {
-      footprint =  Number(request.params.value.split("|")[0])
+    } else{
+      footprint =  Number(request.params.value)
       tgm = Number(null)
     }
 
@@ -107,7 +107,7 @@ export class absolveAction extends Hub.Action {
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
       console.log("beep beep line 106")
-      let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*tgm))
+      let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*tgm || 500000))
       console.log("beep beep line 107")
       console.log("Threshold:",threshold)
       ///Check estimate against thresholds
