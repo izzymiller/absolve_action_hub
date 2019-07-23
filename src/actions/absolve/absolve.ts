@@ -64,11 +64,15 @@ export class absolveAction extends Hub.Action {
     if(!request.params.value) {
       throw "Couldn't get data from cell."
     } else if(request.params.value.includes('|')) {
-      footprint = Number(request.params.value)
-      tgm = Number(request.params.value.split("|")[1])
+      footprint = Number(request.params.value.split(","[0]))
+      console.log(`footprint has been set successfully: ${footprint}`)
+      tgm = Number(request.params.value.split(",")[1])
+      console.log(`TGM has been set successfully ${tgm}`)
     } else{
       footprint =  Number(request.params.value)
-      tgm = Number(null)
+      console.log(`footprint has been set successfully: ${footprint}`)
+      tgm = Number(undefined)
+      console.log(`TGM has been set successfully ${tgm}`)
     }
 
     if (request.formParams.useThreshold == "yes" && !request.formParams.costThreshold && !request.formParams.percentThreshold) {
