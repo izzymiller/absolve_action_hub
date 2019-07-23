@@ -237,7 +237,7 @@ async function refresh_data(bucketName: string | undefined , datasetId: string |
       body: {'bucketName': bucketName,'datasetId': datasetId,'tableId': tableId},
     }
     await httpRequest.post(refresh_options).promise()
-    return 'Dataset refreshed successfully';
+    console.log('Dataset refreshed successfully');
   } catch(err) {
     console.log('Error',err.message);
   }
