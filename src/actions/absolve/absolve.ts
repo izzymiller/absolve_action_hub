@@ -122,7 +122,7 @@ export class absolveAction extends Hub.Action {
 
         try {
           const response = await httpRequest.post(purchase_options).promise()
-          let cost = response.body.total_cost_in_usd_cents
+          let cost = Number(response.body.total_cost_in_usd_cents)*100
           console.log(`You have successfully offset your footprint, spending ${cost}!`)
 
 
