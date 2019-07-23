@@ -107,6 +107,8 @@ export class absolveAction extends Hub.Action {
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
+      console.log(Number(request.formParams.costThreshold))
+      console.log((Number(request.formParams.percentThreshold)/100)*tgm)
       let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)/100)*tgm)
       console.log(`Threshold:${threshold}`)
       ///Check estimate against thresholds
