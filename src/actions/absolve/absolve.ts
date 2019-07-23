@@ -72,7 +72,7 @@ export class absolveAction extends Hub.Action {
       footprint =  Number(request.params.value)
       console.log(`footprint has been set successfully: ${footprint}`)
       tgm = Number(undefined)
-      console.log(`TGM has been set successfully ${tgm}`)
+      console.log(`TGM has been set successfully: ${tgm}`)
     }
 
     if (request.formParams.useThreshold == "yes" && !request.formParams.costThreshold && !request.formParams.percentThreshold) {
@@ -122,15 +122,13 @@ export class absolveAction extends Hub.Action {
 
         try {
           const response = await httpRequest.post(purchase_options).promise()
-          let cost = response.body.total_cost_in_usd_cents*100
-          console.log(`You have successfully offset your footprint, spending ${cost}!`)
+          let cost = response.body.total_cost_in_usd_cents/100
+          console.log(`You have successfully offset your footprint, spending $${cost}!`)
 
 
           ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
           if(request.params.use_full_data_pipeline == "yes") {
-            console.log("trying to refresh data!")
             refresh_data(request.params.bucketName, request.params.datasetId, request.params.tableId)
-            console.log("Refreshed data!")
             }
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
@@ -153,8 +151,8 @@ export class absolveAction extends Hub.Action {
         ///Make the purchase
         try {
           const response = await httpRequest.post(purchase_options).promise()
-          let cost = response.body.total_cost_in_usd_cents
-          console.log(`You have successfully offset your footprint, spending ${cost}!`)
+          let cost = response.body.total_cost_in_usd_cents/100
+          console.log(`You have successfully offset your footprint, spending $${cost}!`)
           
           ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
           if(request.params.use_full_data_pipeline == "yes") {
