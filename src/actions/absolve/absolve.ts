@@ -61,13 +61,11 @@ export class absolveAction extends Hub.Action {
   async execute(request: Hub.ActionRequest) {
     var tgm = Number(undefined)
     var footprint = Number(undefined)
-    console.log("beep beep line 64")
     if(!request.params.value) {
       throw "Couldn't get data from cell."
     } else if(request.params.value.includes('|')) {
       footprint = Number(request.params.value)
       tgm = Number(request.params.value.split("|")[1])
-      console.log("failure in split")
     } else{
       footprint =  Number(request.params.value)
       tgm = Number(null)
@@ -80,10 +78,8 @@ export class absolveAction extends Hub.Action {
     if (request.formParams.useThreshold == "yes" && request.formParams.percentThreshold && !tgm) {
       throw "Percent Threshold set, but TGM is not included in query!"
     }
-    console.log("beep beep line 81")
 
     ///Get an estimate to compare to our thresholds
-    console.log(footprint)
     const estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
@@ -94,21 +90,15 @@ export class absolveAction extends Hub.Action {
       resolveWithFullResponse: true,
       body: {'weight':{'value':footprint,'units':'kg'}},
     }
-    console.log(footprint)
 
     try {
-      console.log("beepbeep line 98")
       const response = await httpRequest.post(estimate_options).promise()
-      console.log("beep beep line 99")
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
-      console.log("beep beep line 101")
       let estimateSlug = response.body.slug
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
-      console.log("beep beep line 106")
       let threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)*tgm || 500000))
-      console.log("beep beep line 107")
       console.log("Threshold:",threshold)
       ///Check estimate against thresholds
       if (estimateCost <= threshold || request.formParams.useThresholds == "no") {
