@@ -76,7 +76,6 @@ export class absolveAction extends Hub.Action {
     }
 
     if (request.formParams.useThreshold == "yes" && !request.formParams.costThreshold && !request.formParams.percentThreshold) {
-      console.log("79 fail")
       throw "Threshold use required, but no thresholds set!"
     }
 
@@ -86,7 +85,6 @@ export class absolveAction extends Hub.Action {
     }
 
     ///Get an estimate to compare to our thresholds
-    console.log("Line 87")
     const estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
@@ -100,15 +98,11 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(estimate_options).promise()
-      console.log("line 100")
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)/100
       let estimateSlug = response.body.slug
-      console.log("line 103")
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
-      console.log(Number(request.formParams.costThreshold))
-      console.log((Number(request.formParams.percentThreshold)/100)*tgm)
       var threshold = Number()
       if(request.formParams.costThreshold && request.formParams.percentThreshold) {
          threshold = Math.min(Number(request.formParams.costThreshold),(Number(request.formParams.percentThreshold)/100)*tgm)
@@ -157,7 +151,6 @@ export class absolveAction extends Hub.Action {
 
       ///If the estimate was higher than the threshold but alwaysBuy is on, spend the threshold.
       } else if( estimateCost > threshold && request.formParams.alwaysBuy == "yes") {
-        console.log("line 160")
         threshold = Math.max(threshold,.25)
         const purchase_options = {
           url: `${CL_API_URL}/purchases/currency`,
@@ -171,9 +164,7 @@ export class absolveAction extends Hub.Action {
         }
         ///Make the purchase
         try {
-          console.log("line 172")
           const response = await httpRequest.post(purchase_options).promise()
-          console.log("line 174")
           let cost = response.body.total_cost_in_usd_cents/100
           console.log(`You have successfully offset your footprint, spending $${cost}!`)
           
