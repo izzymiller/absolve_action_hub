@@ -76,14 +76,17 @@ export class absolveAction extends Hub.Action {
     }
 
     if (request.formParams.useThreshold == "yes" && !request.formParams.costThreshold && !request.formParams.percentThreshold) {
+      console.log("79 fail")
       throw "Threshold use required, but no thresholds set!"
     }
 
     if (request.formParams.useThreshold == "yes" && request.formParams.percentThreshold && !tgm) {
+      console.log("83 fail")
       throw "Percent Threshold set, but TGM is not included in query!"
     }
 
     ///Get an estimate to compare to our thresholds
+    console.log("Line 87")
     const estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
@@ -97,8 +100,10 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(estimate_options).promise()
+      console.log("line 100")
       let estimateCost = parseInt(response.body.total_cost_in_usd_cents)/100
       let estimateSlug = response.body.slug
+      console.log("line 103")
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
       ///Takes the smallest threshold value and sets that as the maximum allowable offset cost
