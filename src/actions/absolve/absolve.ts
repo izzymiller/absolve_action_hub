@@ -97,7 +97,7 @@ export class absolveAction extends Hub.Action {
 
     try {
       const response = await httpRequest.post(estimate_options).promise()
-      let estimateCost = parseInt(response.body.total_cost_in_usd_cents)
+      let estimateCost = parseInt(response.body.total_cost_in_usd_cents)/100
       let estimateSlug = response.body.slug
       console.log(`Estimate successfully returned: ${estimateCost}`)
       
@@ -122,7 +122,7 @@ export class absolveAction extends Hub.Action {
 
         try {
           const response = await httpRequest.post(purchase_options).promise()
-          let cost = Number(response.body.total_cost_in_usd_cents)*100
+          let cost = response.body.total_cost_in_usd_cents*100
           console.log(`You have successfully offset your footprint, spending ${cost}!`)
 
 
