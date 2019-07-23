@@ -158,6 +158,7 @@ export class absolveAction extends Hub.Action {
       ///If the estimate was higher than the threshold but alwaysBuy is on, spend the threshold.
       } else if( estimateCost > threshold && request.formParams.alwaysBuy == "yes") {
         console.log("line 160")
+        threshold = Math.max(threshold,.25)
         const purchase_options = {
           url: `${CL_API_URL}/purchases/currency`,
           headers: {
@@ -211,6 +212,7 @@ export class absolveAction extends Hub.Action {
     },
     {
       label: "Purchase Threshold amount regardless of estimate",
+      description: "This will ALWAYS result in a spend of at least $.25",
       name: "alwaysBuy",
       required: true,
       type: "select",
