@@ -157,6 +157,7 @@ export class absolveAction extends Hub.Action {
 
       ///If the estimate was higher than the threshold but alwaysBuy is on, spend the threshold.
       } else if( estimateCost > threshold && request.formParams.alwaysBuy == "yes") {
+        console.log("line 160")
         const purchase_options = {
           url: `${CL_API_URL}/purchases/currency`,
           headers: {
@@ -169,7 +170,9 @@ export class absolveAction extends Hub.Action {
         }
         ///Make the purchase
         try {
+          console.log("line 172")
           const response = await httpRequest.post(purchase_options).promise()
+          console.log("line 174")
           let cost = response.body.total_cost_in_usd_cents/100
           console.log(`You have successfully offset your footprint, spending $${cost}!`)
           
