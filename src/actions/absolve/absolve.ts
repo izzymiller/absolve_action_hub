@@ -128,7 +128,9 @@ export class absolveAction extends Hub.Action {
 
           ///If full pipeline is enabled, send a webhook to refresh the record in the offset database
           if(request.params.use_full_data_pipeline == "yes") {
-              refresh_data(request.params.bucketName, request.params.datasetId, request.params.tableId)
+            console.log("trying to refresh data!")
+            refresh_data(request.params.bucketName, request.params.datasetId, request.params.tableId)
+            console.log("Refreshed data!")
             }
           return new Hub.ActionResponse({ success: true,message: response })
         } catch (e) {
