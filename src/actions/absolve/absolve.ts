@@ -63,8 +63,8 @@ export class absolveAction extends Hub.Action {
     var footprint = Number(undefined)
     var matchType = String(undefined)
     
-    if(request.params.matchType) {
-      matchType = request.params.matchType
+    if(request.formParams.matchType) {
+      matchType = request.formParams.matchType
     } else {
       matchType = ""
     }
