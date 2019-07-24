@@ -244,7 +244,6 @@ export class absolveAction extends Hub.Action {
        required: false,
        type: "select",
        options: [
-        {name: "", label: ""},
         {name: "wind", label: "Wind"},
         {name: "solar", label: "Solar"},
         {name: "biomass", label: "Biomass"},
