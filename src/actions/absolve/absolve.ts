@@ -61,6 +61,14 @@ export class absolveAction extends Hub.Action {
   async execute(request: Hub.ActionRequest) {
     var tgm = Number(undefined)
     var footprint = Number(undefined)
+    var matchType = String(undefined)
+    
+    if(request.params.matchType) {
+      matchType = request.params.matchType
+    } else {
+      matchType = ""
+    }
+
     if(!request.params.value) {
       throw "Couldn't get data from cell."
     } else if(request.params.value.includes(',')) {
@@ -85,7 +93,7 @@ export class absolveAction extends Hub.Action {
     }
 
     ///Get an estimate to compare to our thresholds
-    const estimate_options = {
+    var estimate_options = {
       url: `${CL_API_URL}/estimates/carbon/`,
       headers: {
        'Content-type': 'application/json',
@@ -93,7 +101,7 @@ export class absolveAction extends Hub.Action {
       },
       json: true,
       resolveWithFullResponse: true,
-      body: {'weight':{'value':footprint,'units':'kg'}},
+      body: {'weight':{'value':footprint,'units':'kg'},"offset_match":{"type":matchType}},
     }
 
     try {
@@ -151,7 +159,7 @@ export class absolveAction extends Hub.Action {
 
       ///If the estimate was higher than the threshold but alwaysBuy is on, spend the threshold.
       } else if( estimateCost > threshold && request.formParams.alwaysBuy == "yes") {
-        threshold = Math.max(threshold,.25)
+        threshold = Math.max(threshold,0.25)
         const purchase_options = {
           url: `${CL_API_URL}/purchases/currency`,
           headers: {
@@ -229,6 +237,21 @@ export class absolveAction extends Hub.Action {
       type: "string",
       default: "200",
     },
+    {
+      label: "Offset Type",
+       name: "matchType",
+       description: "Matches your purchased offsets to the type specified here. Recommended blank for best cost performance. (optional)",
+       required: false,
+       type: "select",
+       options: [
+        {name: "", label: ""},
+        {name: "wind", label: "Wind"},
+        {name: "solar", label: "Solar"},
+        {name: "biomass", label: "Biomass"},
+        {name: "wind", label: "Wind"},
+      ],
+       default: "",
+     },
     ]
     return form
   }
