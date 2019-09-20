@@ -9,7 +9,7 @@ export class absolveAction extends Hub.Action {
   label = "Purchase carbon offsets"
   iconName = "absolve/leaf.svg"
   description = "Offset your carbon footprint"
-  supportedActionTypes = [Hub.ActionType.Cell]
+  supportedActionTypes = [Hub.ActionType.Cell,Hub.ActionType.Dashboard]
   requiredFields = [{tag: TAG}]
   params = [
     {
